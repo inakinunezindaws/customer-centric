@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analizador Customer Centric</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --bg2: #f7f7f5;
+    --bg3: #ebebeb;
+    --text: #1a1a1a;
+    --text2: #6b6b6b;
+    --text3: #9a9a9a;
+    --border: rgba(0,0,0,0.12);
+    --border2: rgba(0,0,0,0.22);
+    --success-bg: #eaf3de;
+    --success-text: #3b6d11;
+    --success-border: #639922;
+    --warning-bg: #faeeda;
+    --warning-text: #854f0b;
+    --warning-border: #ba7517;
+    --info-bg: #e6f1fb;
+    --info-text: #185fa5;
+    --info-border: #378add;
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1e1e1c;
+      --bg2: #252523;
+      --bg3: #2c2c2a;
+      --text: #f0efe8;
+      --text2: #a0a09a;
+      --text3: #6b6b65;
+      --border: rgba(255,255,255,0.10);
+      --border2: rgba(255,255,255,0.18);
+      --success-bg: #173404;
+      --success-text: #c0dd97;
+      --success-border: #3b6d11;
+      --warning-bg: #412402;
+      --warning-text: #fac775;
+      --warning-border: #854f0b;
+      --info-bg: #042c53;
+      --info-text: #b5d4f4;
+      --info-border: #185fa5;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg2);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .container { max-width: 680px; margin: 0 auto; }
+
+  header { text-align: center; margin-bottom: 2.5rem; }
+  header h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 8px; }
+  header p { font-size: 15px; color: var(--text2); line-height: 1.6; max-width: 480px; margin: 0 auto; }
+
+  .card {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .card label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+  }
+
+  textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 0.5px solid var(--border2);
+    border-radius: var(--radius);
+    background: var(--bg2);
+    color: var(--text);
+    font-size: 15px;
+    font-family: inherit;
+    line-height: 1.6;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.15s;
+    min-height: 90px;
+  }
+
+  textarea:focus { border-color: var(--info-border); }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    padding: 9px 18px;
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border2);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.12s, transform 0.08s;
+  }
+
+  button:hover { background: var(--bg2); }
+  button:active { transform: scale(0.98); }
+
+  button.primary {
+    background: var(--text);
+    color: var(--bg);
+    border-color: transparent;
+    font-weight: 500;
+  }
+  button.primary:hover { opacity: 0.88; }
+
+  /* Instrucciones */
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+
+  .step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .step-num {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--bg3);
+    color: var(--text2);
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+  }
+
+  .step-text { font-size: 14px; color: var(--text2); line-height: 1.55; }
+  .step-text strong { color: var(--text); font-weight: 500; }
+
+  /* Prompt box */
+  .prompt-box {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 1rem;
+  }
+
+  .prompt-box.visible { display: flex; }
+
+  .prompt-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .prompt-text {
+    background: var(--bg2);
+    border: 0.5px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 280px;
+    overflow-y: auto;
+    font-family: inherit;
+  }
+
+  .copy-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .copy-feedback {
+    font-size: 12px;
+    color: var(--success-text);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .copy-feedback.show { opacity: 1; }
+
+  .divider {
+    border: none;
+    border-top: 0.5px solid var(--border);
+    margin: 1.5rem 0;
+  }
+
+  .tip-box {
+    background: var(--info-bg);
+    border-radius: var(--radius);
+    border-left: 3px solid var(--info-border);
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--info-text);
+    line-height: 1.55;
+    margin-top: 1rem;
+  }
+
+  a.link { color: var(--info-text); text-decoration: none; font-weight: 500; }
+  a.link:hover { text-decoration: underline; }
+
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: var(--bg3);
+    color: var(--text2);
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>Analizador Customer Centric</h1>
+    <p>Comprueba si tus frases están orientadas al cliente — y obtén la versión mejorada cuando no lo son.</p>
+  </header>
+
+  <!-- Instrucciones -->
+  <div class="card">
+    <label>Cómo funciona</label>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">Escribe la frase que quieres analizar en el campo de abajo.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">Pulsa <strong>"Generar prompt"</strong> — se crea un mensaje listo para Claude.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">Pulsa <strong>"Copiar"</strong> y luego <strong>"Abrir Claude.ai"</strong> — pega el texto y envía.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text">Claude te explicará <strong>por qué</strong> no es customer centric y te dará la <strong>versión mejorada</strong>.</div>
+      </div>
+    </div>
+    <div class="tip-box">
+      Necesitas una cuenta gratuita en <a class="link" href="https://claude.ai" target="_blank">claude.ai</a> para usar el analizador.
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="card">
+    <label>Frase a analizar</label>
+    <textarea id="phrase" placeholder="Ej: &quot;Seguimos a la espera de recibir los documentos por parte del cliente para poder continuar.&quot;"></textarea>
+    <div class="btn-row">
+      <button class="primary" onclick="generate()">Generar prompt</button>
+      <button onclick="clearAll()" style="color:var(--text2)">Limpiar</button>
+    </div>
+
+    <!-- Prompt generado -->
+    <div id="promptBox" class="prompt-box">
+      <hr class="divider" style="margin: 1rem 0 0.75rem;">
+      <div class="prompt-label">Prompt listo para copiar</div>
+      <div id="promptText" class="prompt-text"></div>
+      <div class="copy-row">
+        <button onclick="copyPrompt()">Copiar prompt</button>
+        <button class="primary" onclick="openClaude()">Abrir Claude.ai →</button>
+        <span id="copyFeedback" class="copy-feedback">¡Copiado!</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const PROMPT_TEMPLATE = (frase) => `Actúa como un experto en cultura customer centric y comunicación orientada al cliente.
+
+Analiza la siguiente frase y dime:
+
+1. ¿Es customer centric? Responde con SÍ o NO y explica con detalle POR QUÉ. Ten en cuenta aspectos como: si pone al cliente en el centro, si transmite empatía, si el lenguaje es proactivo o pasivo, si traslada responsabilidad al cliente, si genera fricción o confianza.
+
+2. Si NO es customer centric, escribe la VERSIÓN MEJORADA de la frase. La versión mejorada debe: mantener el mismo mensaje de fondo, usar un lenguaje empático y proactivo, mostrar disposición a ayudar, y eliminar cualquier tono defensivo, burocrático o que cargue al cliente con responsabilidades.
+
+3. Explica brevemente qué has cambiado y por qué la nueva versión es más customer centric.
+
+Frase a analizar:
+"${frase}"`;
+
+  function generate() {
+    const phrase = document.getElementById('phrase').value.trim();
+    if (!phrase) {
+      document.getElementById('phrase').focus();
+      return;
+    }
+
+    const prompt = PROMPT_TEMPLATE(phrase);
+    document.getElementById('promptText').textContent = prompt;
+    document.getElementById('promptBox').classList.add('visible');
+    document.getElementById('promptBox').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function copyPrompt() {
+    const text = document.getElementById('promptText').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const fb = document.getElementById('copyFeedback');
+      fb.classList.add('show');
+      setTimeout(() => fb.classList.remove('show'), 2000);
+    });
+  }
+
+  function openClaude() {
+    copyPrompt();
+    setTimeout(() => window.open('https://claude.ai/new', '_blank'), 300);
+  }
+
+  function clearAll() {
+    document.getElementById('phrase').value = '';
+    document.getElementById('promptBox').classList.remove('visible');
+    document.getElementById('promptText').textContent = '';
+  }
+
+  document.getElementById('phrase').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) generate();
+  });
+</script>
+</body>
+</html>
